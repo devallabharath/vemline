@@ -75,31 +75,60 @@ function! GoLastBuffer() abort
 endfunction
 
 function! BufferCloseSide(dir) abort
+    let left = []
     for buf in g:vem_tabline#tabline.side_buffers(a:dir)
-        exec 'bd' . buf
+        try
+            exec 'bd' . buf
+        catch /E89:/
+            let left = left + [buf]
+        endtry
     endfor
+    if len(left) != 0
+        echohl WarningMsg
+        echo "There are unsaved files..."
+        echohl None
+    endif
 endfunction
 
 function! BufferCloseAllButCurrent() abort
+    let left = []
     let curr = bufnr('%')
     let bufs =  g:vem_tabline#tabline.tabline_buffers
     for buf in bufs
         if curr != buf
-            exec 'bd' . buf
+            try
+                exec 'bd' . buf
+            catch /E89:/
+                let left = left + [buf]
+            endtry
         endif
     endfor
-
+    if len(left) != 0
+        echohl WarningMsg
+        echo "There are unsaved files..."
+        echohl None
+    endif
 endfunction
 
 function! BufferCloseAllButCurrentAndPinned() abort
+    let left = []
     let curr = bufnr('%')
     let bufs =  g:vem_tabline#tabline.tabline_buffers
     for buf in bufs
         let pinned = luaeval('require("hbac.state").is_pinned(' . buf . ')')
         if curr != buf && !pinned
-            exec 'bd' . buf
+            try
+                exec 'bd' . buf
+            catch /E89:/
+                let left = left + [buf]
+            endtry
         endif
     endfor
+    if len(left) != 0
+        echohl WarningMsg
+        echo "There are unsaved files..."
+        echohl None
+    endif
 endfunction
 
 " Commands
