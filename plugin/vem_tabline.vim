@@ -69,9 +69,15 @@ function! VemTablineGo(tagnr) abort
     endtry
 endfunction
 
+function! GoLastBuffer() abort
+    let last = len(g:vem_tabline#buffers#section.buffer_items)
+    call VemTablineGo(last)
+endfunction
+
 " Commands
 
 command! -nargs=1 VemTablineGo call VemTablineGo("<args>")
+command! VemTablineGoLast call GoLastBuffer()
 
 " Mappings
 
