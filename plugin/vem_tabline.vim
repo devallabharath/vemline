@@ -74,10 +74,20 @@ function! GoLastBuffer() abort
     call VemTablineGo(last)
 endfunction
 
+function! BufferCloseSide(dir) abort
+    let side = a:dir == 'left' ? 'left' : 'right'
+    let bufs = g:vem_tabline#tabline.sideBuffers(side)
+    for buf in bufs
+        exec 'bd' . buf
+    endfor
+endfunction
+
 " Commands
 
 command! -nargs=1 VemTablineGo call VemTablineGo("<args>")
 command! VemTablineGoLast call GoLastBuffer()
+command! BufferCloseAllLeft call BufferCloseSide('left')
+command! BufferCloseAllRight call BufferCloseSide('right')
 
 " Mappings
 
