@@ -114,7 +114,12 @@ endfunction
 " Commands
 
 command! -nargs=1 BufferGo call VemTablineGo("<args>")
+command! BufferGoRight call vem_tabline#tabline.select_buffer('right')
+command! BufferGoLeft call vem_tabline#tabline.select_buffer('left')
+command! BufferGoFirst call VemTablineGo(1)
 command! BufferGoLast call GoLastBuffer()
+command! BufferMoveRight call vem_tabline#tabline.move_buffer('right')
+command! BufferMoveLeft call vem_tabline#tabline.move_buffer('left')
 command! BufferCloseAllLeft call BufferCloseSide('left')
 command! BufferCloseAllRight call BufferCloseSide('right')
 command! BufferCloseAllButCurrent call BufferCloseAllButCurrent()
