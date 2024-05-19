@@ -75,16 +75,7 @@ function! GoLastBuffer() abort
 endfunction
 
 function! BufferCloseSide(dir) abort
-    let sorted_buffers = g:vem_tabline#tabline.tabline_buffers
-    let bufnum = bufnr('%')
-    let bufnum_pos = index(sorted_buffers, bufnum)
-    let buf_count = len(sorted_buffers)
-    if a:dir == 'left'
-        let bufs =  sorted_buffers[:bufnum_pos-1]
-    else
-        let bufs =  sorted_buffers[bufnum_pos+1:]
-    endif
-    for buf in bufs
+    for buf in g:vem_tabline#tabline.side_buffers(a:dir)
         exec 'bd' . buf
     endfor
 endfunction
@@ -120,6 +111,8 @@ command! BufferGoFirst call VemTablineGo(1)
 command! BufferGoLast call GoLastBuffer()
 command! BufferMoveRight call vem_tabline#tabline.move_buffer('right')
 command! BufferMoveLeft call vem_tabline#tabline.move_buffer('left')
+command! BufferMoveStart call vem_tabline#tabline.move_buffer_ends('start')
+command! BufferMoveLast call vem_tabline#tabline.move_buffer_ends('last')
 command! BufferCloseAllLeft call BufferCloseSide('left')
 command! BufferCloseAllRight call BufferCloseSide('right')
 command! BufferCloseAllButCurrent call BufferCloseAllButCurrent()
