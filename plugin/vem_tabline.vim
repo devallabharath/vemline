@@ -75,36 +75,50 @@ function! GoLastBuffer() abort
 endfunction
 
 function! BufferCloseSide(dir) abort
-    let side = a:dir == 'left' ? 'left' : 'right'
-    let bufs = g:vem_tabline#tabline.sideBuffers(side)
+    let sorted_buffers = g:vem_tabline#tabline.tabline_buffers
+    let bufnum = bufnr('%')
+    let bufnum_pos = index(sorted_buffers, bufnum)
+    let buf_count = len(sorted_buffers)
+    if a:dir == 'left'
+        let bufs =  sorted_buffers[:bufnum_pos-1]
+    else
+        let bufs =  sorted_buffers[bufnum_pos+1:]
+    endif
     for buf in bufs
         exec 'bd' . buf
     endfor
 endfunction
 
+function! BufferCloseAllButCurrent() abort
+    let curr = bufnr('%')
+    let bufs =  g:vem_tabline#tabline.tabline_buffers
+    for buf in bufs
+        if curr != buf
+            exec 'bd' . buf
+        endif
+    endfor
+
+endfunction
+
+function! BufferCloseAllButCurrentAndPinned() abort
+    let curr = bufnr('%')
+    let bufs =  g:vem_tabline#tabline.tabline_buffers
+    for buf in bufs
+        let pinned = luaeval('require("hbac.state").is_pinned(' . buf . ')')
+        if curr != buf && !pinned
+            exec 'bd' . buf
+        endif
+    endfor
+endfunction
+
 " Commands
 
-command! -nargs=1 VemTablineGo call VemTablineGo("<args>")
-command! VemTablineGoLast call GoLastBuffer()
+command! -nargs=1 BufferGo call VemTablineGo("<args>")
+command! BufferGoLast call GoLastBuffer()
 command! BufferCloseAllLeft call BufferCloseSide('left')
 command! BufferCloseAllRight call BufferCloseSide('right')
-
-" Mappings
-
-" select previous buffer
-map <silent> <Plug>vem_prev_buffer- :<C-u>call vem_tabline#tabline.select_buffer('left')<CR>
-
-" select next buffer
-map <silent> <Plug>vem_next_buffer- :<C-u>call vem_tabline#tabline.select_buffer('right')<CR>
-
-" move buffer to the left
-map <silent> <Plug>vem_move_buffer_left- :<C-u>call vem_tabline#tabline.move_buffer('left')<CR>
-
-" move buffer to the right
-map <silent> <Plug>vem_move_buffer_right- :<C-u>call vem_tabline#tabline.move_buffer('right')<CR>
-
-" delete buffer
-map <silent> <Plug>vem_delete_buffer- :<C-u>call vem_tabline#tabline.delete_buffer()<CR>
+command! BufferCloseAllButCurrent call BufferCloseAllButCurrent()
+command! BufferCloseAllButCurrentAndPinned call BufferCloseAllButCurrentAndPinned()
 
 " Autocommands
 augroup VemTabLine
