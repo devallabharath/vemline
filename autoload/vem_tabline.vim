@@ -299,16 +299,30 @@ function! vem_tabline#tabline.swap_window_position(direction) abort
     exec next_winnum . 'wincmd w'
 endfunction
 
-function! vem_tabline#tabline.sideBuffers(direction) abort
+function! vem_tabline#tabline.side_buffers(dir) abort
     let sorted_buffers = t:vem_tabline_buffers
     let bufnum = bufnr('%')
     let bufnum_pos = index(sorted_buffers, bufnum)
     let buf_count = len(sorted_buffers)
-    if a:direction == 'left'
-        return sorted_buffers[:bufnum_pos-1]
+    if a:dir == 'left'
+        let bufs = bufnum_pos == 0 ? [] : sorted_buffers[:bufnum_pos-1]
+        return bufs
     else
-        return sorted_buffers[bufnum_pos+1:]
+        let bufs = bufnum_pos == buf_count ? [] : sorted_buffers[bufnum_pos+1:]
+        return bufs
     endif
+endfunction
+
+function! vem_tabline#tabline.move_buffer_ends(loc) abort
+    let curr = bufnr('%')
+    let left = self.side_buffers('left')
+    let right = self.side_buffers('right')
+    if a:loc == 'start'
+        let t:vem_tabline_buffers = [curr] + left + right
+    else
+        let t:vem_tabline_buffers = left + right + [curr]
+    endif
+    call self.refresh()
 endfunction
 
 " Move current buffer to left/right in the tabline
