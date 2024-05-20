@@ -85,7 +85,7 @@ function! BufferCloseSide(dir) abort
     endfor
     if len(left) != 0
         echohl WarningMsg
-        echo "There are unsaved files..."
+        echo "Some unsaved files were left..."
         echohl None
     endif
 endfunction
@@ -105,7 +105,7 @@ function! BufferCloseAllButCurrent() abort
     endfor
     if len(left) != 0
         echohl WarningMsg
-        echo "There are unsaved files..."
+        echo "Some unsaved files were left..."
         echohl None
     endif
 endfunction
@@ -126,9 +126,49 @@ function! BufferCloseAllButCurrentAndPinned() abort
     endfor
     if len(left) != 0
         echohl WarningMsg
-        echo "There are unsaved files..."
+        echo "Some unsaved files were left..."
         echohl None
     endif
+endfunction
+
+function! BufferOrderByTime(o)
+    let t:vem_tabline_buffers = sort(t:vem_tabline_buffers)
+    if a:o == '>'
+        let t:vem_tabline_buffers = reverse(t:vem_tabline_buffers)
+    endif
+    call g:vem_tabline#tabline.refresh()
+endfunction
+
+function! ByPath(a, b)
+    let path_a = fnamemodify(bufname(a:a), ':h')
+    let path_b = fnamemodify(bufname(a:b), ':h')
+    if path_a == path_b
+        let name_a = fnamemodify(bufname(a:a), ':t:r')
+        let name_b = fnamemodify(bufname(a:b), ':t:r')
+        return name_a > name_b ? 1 : name_a < name_b ? -1 : 0
+    else
+        return path_a > path_b ? 1 : path_a < path_b ? -1 : 0
+    endif
+endfunction
+
+function! ByName(a, b)
+    let name_a = fnamemodify(bufname(a:a), ':t:r')
+    let name_b = fnamemodify(bufname(a:b), ':t:r')
+    return name_a > name_b ? 1 : name_a < name_b ? -1 : 0
+endfunction
+
+function! ByType(a, b)
+    let name_a = fnamemodify(bufname(a:a), ':e')
+    let name_b = fnamemodify(bufname(a:b), ':e')
+    return name_a > name_b ? 1 : name_a < name_b ? -1 : 0
+endfunction
+
+function! BufferOrderBy(c, o)
+    let t:vem_tabline_buffers = sort(t:vem_tabline_buffers, a:c)
+    if a:o == '>'
+        let t:vem_tabline_buffers = reverse(t:vem_tabline_buffers)
+    endif
+    call g:vem_tabline#tabline.refresh()
 endfunction
 
 " Commands
@@ -146,6 +186,14 @@ command! BufferCloseAllLeft call BufferCloseSide('left')
 command! BufferCloseAllRight call BufferCloseSide('right')
 command! BufferCloseAllButCurrent call BufferCloseAllButCurrent()
 command! BufferCloseAllButCurrentAndPinned call BufferCloseAllButCurrentAndPinned()
+command! BufferOrderByTimeAsc call BufferOrderByTime('<')
+command! BufferOrderByTimeAsc call BufferOrderByTime('>')
+command! BufferOrderByPathAsc call BufferOrderBy('ByPath', '<')
+command! BufferOrderByPathDsc call BufferOrderBy('ByPath', '>')
+command! BufferOrderByNameAsc call BufferOrderBy('ByName', '<')
+command! BufferOrderByNameDsc call BufferOrderBy('ByName', '>')
+command! BufferOrderByTypeAsc call BufferOrderBy('ByType', '<')
+command! BufferOrderByTypeDsc call BufferOrderBy('ByType', '>')
 
 " Autocommands
 augroup VemTabLine
