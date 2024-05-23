@@ -76,17 +76,24 @@ endfunction
 
 function! BufferCloseSide(dir) abort
     let left = []
-    for buf in g:vem_tabline#tabline.side_buffers(a:dir)
-        try
-            exec 'bd' . buf
-        catch /E89:/
-            let left = left + [buf]
-        endtry
-    endfor
-    if len(left) != 0
-        echohl WarningMsg
-        echo "Some unsaved files were left..."
-        echohl None
+    let prompt = " 󰬊 Close All Left?"
+    if a:dir == 'right'
+        let prompt = "󰬊  Close All Right?"
+    endif
+    let ans = confirm(prompt, "&No\n&Yes", 1)
+    if ans == 2
+        for buf in g:vem_tabline#tabline.side_buffers(a:dir)
+            try
+                exec 'bd' . buf
+            catch /E89:/
+                let left = left + [buf]
+            endtry
+        endfor
+        if len(left) != 0
+            echohl WarningMsg
+            echo "Some unsaved files were left..."
+            echohl None
+        endif
     endif
 endfunction
 
@@ -94,19 +101,22 @@ function! BufferCloseAllButCurrent() abort
     let left = []
     let curr = bufnr('%')
     let bufs =  g:vem_tabline#tabline.tabline_buffers
-    for buf in bufs
-        if curr != buf
-            try
-                exec 'bd' . buf
-            catch /E89:/
-                let left = left + [buf]
-            endtry
+    let ans = confirm('!󰬊 Close all buffers?', "&No\n&Yes", 1)
+    if ans == 2
+        for buf in bufs
+            if curr != buf
+                try
+                    exec 'bd' . buf
+                catch /E89:/
+                    let left = left + [buf]
+                endtry
+            endif
+        endfor
+        if len(left) != 0
+            echohl WarningMsg
+            echo "Some unsaved files were left..."
+            echohl None
         endif
-    endfor
-    if len(left) != 0
-        echohl WarningMsg
-        echo "Some unsaved files were left..."
-        echohl None
     endif
 endfunction
 
@@ -114,20 +124,23 @@ function! BufferCloseAllButCurrentAndPinned() abort
     let left = []
     let curr = bufnr('%')
     let bufs =  g:vem_tabline#tabline.tabline_buffers
-    for buf in bufs
-        let pinned = luaeval('require("hbac.state").is_pinned(' . buf . ')')
-        if curr != buf && !pinned
-            try
-                exec 'bd' . buf
-            catch /E89:/
-                let left = left + [buf]
-            endtry
+    let ans = confirm('!󰬊 !󰐃 Close all except Current & Pinned?', "&No\n&Yes", 1)
+    if ans == 2
+        for buf in bufs
+            let pinned = luaeval('require("hbac.state").is_pinned(' . buf . ')')
+            if curr != buf && !pinned
+                try
+                    exec 'bd' . buf
+                catch /E89:/
+                    let left = left + [buf]
+                endtry
+            endif
+        endfor
+        if len(left) != 0
+            echohl WarningMsg
+            echo "Some unsaved files were left..."
+            echohl None
         endif
-    endfor
-    if len(left) != 0
-        echohl WarningMsg
-        echo "Some unsaved files were left..."
-        echohl None
     endif
 endfunction
 
@@ -209,4 +222,3 @@ augroup END
 " Options
 set guioptions-=e
 set tabline=%!vem_tabline#tabline.render()
-
