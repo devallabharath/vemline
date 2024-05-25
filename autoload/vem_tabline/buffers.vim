@@ -250,7 +250,6 @@ function! vem_tabline#buffers#section.set_viewport_params(max_length) abort
 endfunction
 
 function! vem_tabline#buffers#section.set_tagnrs() abort
-
     let self.tagnr_map = {}
     let buffer_range = range(self.start_index, self.end_index)
     let index = 0
@@ -271,13 +270,10 @@ function! vem_tabline#buffers#section.set_tagnrs() abort
 endfunction
 
 function! vem_tabline#buffers#section.get_tabline() abort
-
     let section = '%#VemTablineNormal#'
-
     " left arrow
     if self.left_arrow
         let section .= g:vem_tabline_left_arrow
-
         " left padding
         if self.left_padding
             let section .= '%#VemTablinePartialName#' . self.get_left_padding() . '%#VemTablineNormal#'
@@ -292,19 +288,19 @@ function! vem_tabline#buffers#section.get_tabline() abort
 
         " label
         if buffer_item.current
-            let section .= '%#VemTablineSelected# '
+            let section .= '%#VemTablineSelected#'
             let section .= buffer_item.render('Selected')
         elseif buffer_item.shown
             let section .= ' %#VemTablineShown#'
             let section .= buffer_item.render('Shown')
         else
-            let section .= ' %#VemTablineNormal#'
+            let section .= '%#VemTablineNormal#'
             let section .= buffer_item.render('')
         endif
 
         " last right label margin
         if last_one
-            let section .= ' %#VemTablineNormal#'
+            let section .= '%#VemTablineNormal#'
         endif
     endfor
 
@@ -399,7 +395,7 @@ function! vem_tabline#buffers#buffer_item.get_length(tagnr) abort
 endfunction
 
 function! vem_tabline#buffers#buffer_item.get_label() abort
-    return ' ' . self.icon . self.tagnr . self.name . self.discriminator . self.flags . ' '
+    return self.icon . self.tagnr . self.name . self.discriminator . self.flags
 endfunction
 
 function! vem_tabline#buffers#buffer_item.get_tagnr(index) abort
@@ -442,6 +438,10 @@ function! vem_tabline#buffers#buffer_item.render(modifier) abort
     endif
     let label .= self.flags
     let label .= ' '
+
+    if g:vem_tabline_seperator != 0 && a:modifier != 'Selected'
+        let label .= g:vem_tabline_seperator_char
+    endif
 
     " Enable mouse clicking (only neovim for now)
     if has('tablineat')

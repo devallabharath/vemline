@@ -18,6 +18,8 @@ let g:vem_tabline_show_number = get(g:, 'vem_tabline_show_number', 'none')
 let g:vem_tabline_number_symbol = get(g:, 'vem_tabline_number_symbol', ':')
 let g:vem_tabline_multiwindow_mode = get(g:, 'vem_tabline_multiwindow_mode', 0)
 let g:vem_tabline_location_symbol = get(g:, 'vem_tabline_location_symbol', '@')
+let g:vem_tabline_seperator = get(g:, 'vem_tabline_seperator', 1)
+let g:vem_tabline_seperator_char = get(g:, 'vem_tabline_seperator_char', '▕')
 if has('gui_running')
     let g:vem_tabline_left_arrow = get(g:, 'vem_tabline_left_arrow', '◀')
     let g:vem_tabline_right_arrow = get(g:, 'vem_tabline_right_arrow', '▶')
@@ -74,118 +76,7 @@ function! GoLastBuffer() abort
     call VemTablineGo(last)
 endfunction
 
-function! BufferCloseSide(dir) abort
-    let left = []
-    let prompt = " 󰬊 Close All Left?"
-    if a:dir == 'right'
-        let prompt = "󰬊  Close All Right?"
-    endif
-    let ans = confirm(prompt, "&No\n&Yes", 1)
-    if ans == 2
-        for buf in g:vem_tabline#tabline.side_buffers(a:dir)
-            try
-                exec 'bd' . buf
-            catch /E89:/
-                let left = left + [buf]
-            endtry
-        endfor
-        if len(left) != 0
-            echohl WarningMsg
-            echo "Some unsaved files were left..."
-            echohl None
-        endif
-    endif
-endfunction
-
-function! BufferCloseAllButCurrent() abort
-    let left = []
-    let curr = bufnr('%')
-    let bufs =  g:vem_tabline#tabline.tabline_buffers
-    let ans = confirm('!󰬊 Close all buffers?', "&No\n&Yes", 1)
-    if ans == 2
-        for buf in bufs
-            if curr != buf
-                try
-                    exec 'bd' . buf
-                catch /E89:/
-                    let left = left + [buf]
-                endtry
-            endif
-        endfor
-        if len(left) != 0
-            echohl WarningMsg
-            echo "Some unsaved files were left..."
-            echohl None
-        endif
-    endif
-endfunction
-
-function! BufferCloseAllButCurrentAndPinned() abort
-    let left = []
-    let curr = bufnr('%')
-    let bufs =  g:vem_tabline#tabline.tabline_buffers
-    let ans = confirm('!󰬊 !󰐃 Close all except Current & Pinned?', "&No\n&Yes", 1)
-    if ans == 2
-        for buf in bufs
-            let pinned = luaeval('require("hbac.state").is_pinned(' . buf . ')')
-            if curr != buf && !pinned
-                try
-                    exec 'bd' . buf
-                catch /E89:/
-                    let left = left + [buf]
-                endtry
-            endif
-        endfor
-        if len(left) != 0
-            echohl WarningMsg
-            echo "Some unsaved files were left..."
-            echohl None
-        endif
-    endif
-endfunction
-
-function! BufferOrderByTime(o)
-    let t:vem_tabline_buffers = sort(t:vem_tabline_buffers)
-    if a:o == '>'
-        let t:vem_tabline_buffers = reverse(t:vem_tabline_buffers)
-    endif
-    call g:vem_tabline#tabline.refresh()
-endfunction
-
-function! ByPath(a, b)
-    let path_a = fnamemodify(bufname(a:a), ':h')
-    let path_b = fnamemodify(bufname(a:b), ':h')
-    if path_a == path_b
-        let name_a = fnamemodify(bufname(a:a), ':t:r')
-        let name_b = fnamemodify(bufname(a:b), ':t:r')
-        return name_a > name_b ? 1 : name_a < name_b ? -1 : 0
-    else
-        return path_a > path_b ? 1 : path_a < path_b ? -1 : 0
-    endif
-endfunction
-
-function! ByName(a, b)
-    let name_a = fnamemodify(bufname(a:a), ':t:r')
-    let name_b = fnamemodify(bufname(a:b), ':t:r')
-    return name_a > name_b ? 1 : name_a < name_b ? -1 : 0
-endfunction
-
-function! ByType(a, b)
-    let name_a = fnamemodify(bufname(a:a), ':e')
-    let name_b = fnamemodify(bufname(a:b), ':e')
-    return name_a > name_b ? 1 : name_a < name_b ? -1 : 0
-endfunction
-
-function! BufferOrderBy(c, o)
-    let t:vem_tabline_buffers = sort(t:vem_tabline_buffers, a:c)
-    if a:o == '>'
-        let t:vem_tabline_buffers = reverse(t:vem_tabline_buffers)
-    endif
-    call g:vem_tabline#tabline.refresh()
-endfunction
-
 " Commands
-
 command! -nargs=1 BufferGo call VemTablineGo("<args>")
 command! BufferGoRight call vem_tabline#tabline.select_buffer('right')
 command! BufferGoLeft call vem_tabline#tabline.select_buffer('left')
@@ -195,18 +86,18 @@ command! BufferMoveRight call vem_tabline#tabline.move_buffer('right')
 command! BufferMoveLeft call vem_tabline#tabline.move_buffer('left')
 command! BufferMoveStart call vem_tabline#tabline.move_buffer_ends('start')
 command! BufferMoveLast call vem_tabline#tabline.move_buffer_ends('last')
-command! BufferCloseAllLeft call BufferCloseSide('left')
-command! BufferCloseAllRight call BufferCloseSide('right')
-command! BufferCloseAllButCurrent call BufferCloseAllButCurrent()
-command! BufferCloseAllButCurrentAndPinned call BufferCloseAllButCurrentAndPinned()
-command! BufferOrderByTimeAsc call BufferOrderByTime('<')
-command! BufferOrderByTimeAsc call BufferOrderByTime('>')
-command! BufferOrderByPathAsc call BufferOrderBy('ByPath', '<')
-command! BufferOrderByPathDsc call BufferOrderBy('ByPath', '>')
-command! BufferOrderByNameAsc call BufferOrderBy('ByName', '<')
-command! BufferOrderByNameDsc call BufferOrderBy('ByName', '>')
-command! BufferOrderByTypeAsc call BufferOrderBy('ByType', '<')
-command! BufferOrderByTypeDsc call BufferOrderBy('ByType', '>')
+command! BufferCloseAllLeft call vem_tabline#close#Side('left')
+command! BufferCloseAllRight call vem_tabline#close#Side('right')
+command! BufferCloseAllButCurrent call vem_tabline#close#All()
+command! BufferCloseAllButCurrentAndPinned call vem_tabline#close#Unpinned()
+command! BufferOrderByTimeAsc call vem_tabline#order#ByTime('<')
+command! BufferOrderByTimeDsc call vem_tabline#order#ByTime('>')
+command! BufferOrderByPathAsc call vem_tabline#order#By('ByPath', '<')
+command! BufferOrderByPathDsc call vem_tabline#order#By('ByPath', '>')
+command! BufferOrderByNameAsc call vem_tabline#order#By('ByName', '<')
+command! BufferOrderByNameDsc call vem_tabline#order#By('ByName', '>')
+command! BufferOrderByTypeAsc call vem_tabline#order#By('ByType', '<')
+command! BufferOrderByTypeDsc call vem_tabline#order#By('ByType', '>')
 
 " Autocommands
 augroup VemTabLine

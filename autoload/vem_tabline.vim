@@ -16,6 +16,8 @@
 " This is just a workaround to load the files
 function! vem_tabline#Init() abort
     call g:vem_tabline#buffers#Init()
+    call g:vem_tabline#close#Init()
+    call g:vem_tabline#order#Init()
     call g:vem_tabline#separator#Init()
     call g:vem_tabline#tabpages#Init()
 endfunction
@@ -299,20 +301,6 @@ function! vem_tabline#tabline.swap_window_position(direction) abort
     exec next_winnum . 'wincmd w'
 endfunction
 
-function! vem_tabline#tabline.side_buffers(dir) abort
-    let sorted_buffers = t:vem_tabline_buffers
-    let bufnum = bufnr('%')
-    let bufnum_pos = index(sorted_buffers, bufnum)
-    let buf_count = len(sorted_buffers)
-    if a:dir == 'left'
-        let bufs = bufnum_pos == 0 ? [] : sorted_buffers[:bufnum_pos-1]
-        return bufs
-    else
-        let bufs = bufnum_pos == buf_count ? [] : sorted_buffers[bufnum_pos+1:]
-        return bufs
-    endif
-endfunction
-
 function! vem_tabline#tabline.move_buffer_ends(loc) abort
     let curr = bufnr('%')
     let left = self.side_buffers('left')
@@ -392,4 +380,3 @@ function! vem_tabline#tabline.refresh(...) abort
         set showtabline=2
     endif
 endfunction
-
