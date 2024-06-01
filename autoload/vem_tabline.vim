@@ -223,7 +223,6 @@ endfunction
 " If the current buffer is in the tabline, it selects the prev or next one
 " Otherwise, it selects one of the buffers in the tabline
 function! vem_tabline#tabline.select_buffer(direction) abort
-
     " if multiwindow: go to new window
     " if single window: show new buffer in same window
     call self.update_if_needed()
@@ -269,7 +268,6 @@ endfunction
 
 " Move current buffer to left/right in the tabline
 function! vem_tabline#tabline.move_buffer(direction) abort
-
     " check that the buffer is in tabline
     let bufnum = bufnr('%')
     let bufnum_pos = index(self.tabline_buffers, bufnum)
@@ -287,35 +285,35 @@ function! vem_tabline#tabline.move_buffer(direction) abort
 endfunction
 
 function! vem_tabline#tabline.swap_window_position(direction) abort
-
     " get the number of the buffer to swap possition with
     let next_winnum = self.get_next_window(a:direction)
     if next_winnum == 0
         return
     endif
-
     " swap contents
     exec next_winnum . 'wincmd x'
-
     " move to next window
     exec next_winnum . 'wincmd w'
 endfunction
 
 function! vem_tabline#tabline.move_buffer_ends(loc) abort
     let curr = bufnr('%')
-    let left = self.side_buffers('left')
-    let right = self.side_buffers('right')
+    let buffers = t:vem_tabline_buffers
+    let id = index(buffers, curr)
+    if id == -1
+        return
+    endif
+    call remove(buffers, id)
     if a:loc == 'start'
-        let t:vem_tabline_buffers = [curr] + left + right
+        let t:vem_tabline_buffers = [curr]+buffers
     else
-        let t:vem_tabline_buffers = left + right + [curr]
+        let t:vem_tabline_buffers = buffers+[curr]
     endif
     call self.refresh()
 endfunction
 
 " Move current buffer to left/right in the tabline
 function! vem_tabline#tabline.swap_buffer_position(direction) abort
-
     " get buffer position
     let sorted_buffers = t:vem_tabline_buffers
     let bufnum = bufnr('%')

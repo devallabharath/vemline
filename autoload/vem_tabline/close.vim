@@ -4,86 +4,80 @@ function! vem_tabline#close#Init() abort
   return 1
 endfunction
 
-function! Side_buffers(dir) abort
-  let sorted_buffers = t:vem_tabline_buffers
-  let bufnum = bufnr('%')
-  let bufnum_pos = index(sorted_buffers, bufnum)
-  let buf_count = len(sorted_buffers)
-  if a:dir == 'left'
-      let bufs = bufnum_pos == 0 ? [] : sorted_buffers[:bufnum_pos-1]
-      return bufs
+function! CloseBufs(bufs, force) abort
+  let cmd = a:force ? 'bd!' : 'bd'
+  let left = []
+  for buf in a:bufs
+    try
+      exec cmd . buf
+    catch
+      let left = left + [buf]
+    endtry
+  endfor
+  return left
+endfunction
+
+function! CloseDirtyBufs(bufs) abort
+  let msg = "There are unsaved files left..."
+  let ans = confirm(msg, "&SaveAndClose\n&ForceClose\n&Leave", 3)
+  if ans == 1
+    for buf in a:bufs
+      execute 'buffer' . buf
+      update
+      exec 'bd' . buf
+    endfor
+  elseif ans == 2
+    call CloseBufs(a:bufs, 1)
   else
-      let bufs = bufnum_pos == buf_count ? [] : sorted_buffers[bufnum_pos+1:]
-      return bufs
+    return
   endif
 endfunction
 
-function! vem_tabline#close#All() abort
-  let left = []
-  let curr = bufnr('%')
-  let bufs =  g:vem_tabline#tabline.tabline_buffers
+function! vem_tabline#close#All()
   let ans = confirm('!󰬊 Close all buffers?', "&No\n&Yes", 1)
-  if ans == 2
-      for buf in bufs
-          if curr != buf
-              try
-                  exec 'bd' . buf
-              catch /E89:/
-                  let left = left + [buf]
-              endtry
-          endif
-      endfor
-      if len(left) != 0
-          echohl WarningMsg
-          echo "Some unsaved files were left..."
-          echohl None
-      endif
+  if !ans || ans == 1
+    return
+  endif
+  let bufs =  t:vem_tabline_buffers
+  let id = index(bufs, bufnr('%'))
+  call remove(bufs, id)
+  let left = CloseBufs(bufs, 0)
+  if len(left) != 0
+    call CloseDirtyBufs(left)
   endif
 endfunction
 
-function! vem_tabline#close#Side(dir) abort
-  let left = []
-  let prompt = " 󰬊 Close All Left?"
-  if a:dir == 'right'
-      let prompt = "󰬊  Close All Right?"
+function! vem_tabline#close#Side(dir)
+  let msg = a:dir == 'left' ? " 󰬊 Close All Left?" : "󰬊  Close All Right?"
+  let ans = confirm(msg, "&No\n&Yes", 1)
+  if !ans || ans == 1
+    return
   endif
-  let ans = confirm(prompt, "&No\n&Yes", 1)
-  if ans == 2
-      for buf in Side_buffers(a:dir)
-          try
-              exec 'bd' . buf
-          catch /E89:/
-              let left = left + [buf]
-          endtry
-      endfor
-      if len(left) != 0
-          echohl WarningMsg
-          echo "Some unsaved files were left..."
-          echohl None
-      endif
+  let bufs = t:vem_tabline_buffers
+  let id = index(bufs, bufnr('%'))
+  let bufs = a:dir == 'left' ? bufs[:id-1] : bufs[id+1:]
+  let left = CloseBufs(bufs, 0)
+  if len(left) != 0
+    call CloseDirtyBufs(left)
   endif
 endfunction
 
-function! vem_tabline#close#Unpinned() abort
-  let left = []
-  let curr = bufnr('%')
-  let bufs =  g:vem_tabline#tabline.tabline_buffers
+function! vem_tabline#close#Unpinned()
   let ans = confirm('!󰬊 !󰐃 Close all except Current & Pinned?', "&No\n&Yes", 1)
-  if ans == 2
-      for buf in bufs
-          let pinned = luaeval('require("hbac.state").is_pinned(' . buf . ')')
-          if curr != buf && !pinned
-              try
-                  exec 'bd' . buf
-              catch /E89:/
-                  let left = left + [buf]
-              endtry
-          endif
-      endfor
-      if len(left) != 0
-          echohl WarningMsg
-          echo "Some unsaved files were left..."
-          echohl None
-      endif
+  if !ans || ans == 1
+    return
+  endif
+  let left = []
+  let bufs =  t:vem_tabline_buffers
+  let id = index(bufs, bufnr('%'))
+  call remove(bufs, id)
+  for buf in bufs
+    if !luaeval('require("hbac.state").is_pinned(' . buf . ')')
+      let left = left +[buf]
+    endif
+  endfor
+  let left = CloseBufs(left, 0)
+  if len(left) != 0
+    call CloseDirtyBufs(left)
   endif
 endfunction
