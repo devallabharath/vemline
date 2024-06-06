@@ -98,6 +98,12 @@ command! BufferOrderByNameAsc call vem_tabline#order#By('ByName', '<')
 command! BufferOrderByNameDsc call vem_tabline#order#By('ByName', '>')
 command! BufferOrderByTypeAsc call vem_tabline#order#By('ByType', '<')
 command! BufferOrderByTypeDsc call vem_tabline#order#By('ByType', '>')
+command! BufferPinToggle call vem_tabline#pins#toggle(0)
+" if g:vem_tabline_show_list
+"     command! BufferList call vem_tabline#select#toggle()
+" endif
+" command! BufferPinAll call vem_tabline#pins#toggle_all(1)
+" command! BufferUnPinAll call vem_tabline#pins#toggle_all(0)
 
 " Autocommands
 augroup VemTabLine

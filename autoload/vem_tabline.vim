@@ -18,6 +18,7 @@ function! vem_tabline#Init() abort
     call g:vem_tabline#buffers#Init()
     call g:vem_tabline#close#Init()
     call g:vem_tabline#order#Init()
+    call g:vem_tabline#pins#Init()
     call g:vem_tabline#separator#Init()
     call g:vem_tabline#tabpages#Init()
 endfunction
@@ -369,7 +370,7 @@ function! vem_tabline#tabline.refresh(...) abort
     if g:vem_tabline_show == 0
         set showtabline=0
     elseif g:vem_tabline_show == 1
-        if tabpagenr('$') > 1 || len(self.tabline_buffers) > 1 || self.extra_buffer_count > 0
+        if tabpagenr('$') > 1 || len(self.tabline_buffers) > 0 || self.extra_buffer_count > 0
             set showtabline=2
         else
             set showtabline=0

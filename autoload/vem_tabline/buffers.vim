@@ -116,7 +116,7 @@ function! vem_tabline#buffers#section.generate_labels_without_tagnr() abort
 
         " get flags
         if buffer_item.modified
-            let buffer_item.flags = '*'
+            let buffer_item.flags = ''
         endif
 
         " empty name
@@ -422,7 +422,7 @@ endfunction
 
 function! vem_tabline#buffers#buffer_item.render(modifier) abort
     let label = ' '
-    let pinned = luaeval('require("hbac.state").is_pinned(' . self.nr . ')')
+    let pinned = vem_tabline#pins#is_pinned(self.nr)
     let label .= pinned ? '󰐃 ' : ''
     let label .= self.icon
     if self.tagnr != ''

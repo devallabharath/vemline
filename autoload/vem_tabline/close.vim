@@ -17,7 +17,7 @@ function! CloseBufs(bufs, force) abort
   return left
 endfunction
 
-function! CloseDirtyBufs(bufs) abort
+function! vem_tabline#close#dirty_bufs(bufs) abort
   let msg = "There are unsaved files left..."
   let ans = confirm(msg, "&SaveAndClose\n&ForceClose\n&Leave", 3)
   if ans == 1
@@ -43,7 +43,7 @@ function! vem_tabline#close#All()
   call remove(bufs, id)
   let left = CloseBufs(bufs, 0)
   if len(left) != 0
-    call CloseDirtyBufs(left)
+    call vem_tabline#close#dirty_bufs(left)
   endif
 endfunction
 
@@ -58,7 +58,7 @@ function! vem_tabline#close#Side(dir)
   let bufs = a:dir == 'left' ? bufs[:id-1] : bufs[id+1:]
   let left = CloseBufs(bufs, 0)
   if len(left) != 0
-    call CloseDirtyBufs(left)
+    call vem_tabline#close#dirty_bufs(left)
   endif
 endfunction
 
@@ -72,12 +72,12 @@ function! vem_tabline#close#Unpinned()
   let id = index(bufs, bufnr('%'))
   call remove(bufs, id)
   for buf in bufs
-    if !luaeval('require("hbac.state").is_pinned(' . buf . ')')
+    if !vem_tabline#pins#is_pinned(buf)
       let left = left +[buf]
     endif
   endfor
   let left = CloseBufs(left, 0)
   if len(left) != 0
-    call CloseDirtyBufs(left)
+    call vem_tabline#close#dirty_bufs(left)
   endif
 endfunction
